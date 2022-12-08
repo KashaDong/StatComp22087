@@ -1,0 +1,257 @@
+---
+title: "MAtree"
+author: Yixi Dong
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MAtree}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+Due to high cost of identifying software flaws, researchers started concentrating on software defect prediction(SDP) using various statistical and machine learning or deep learning methods. After some naive application of the aforementioned techniques, the popular research focus has shifted to assembling or combining the prediction results and dealing with the class imbalance problem, both direction aiming to improve the performance of the classifier. People are also now beginning to use some transfer learning techniques in order to enable SDP to adapt to more application scenarios.
+
+`MAtree` is basically an ensemble method which combines two popular classifiers, `xgboost` and `lightgbm`, by cross-validation model averaging method. Below we will briefly introduce the averaging method, and then explain our `MAtree` algorithm, and finally present some experiment results.
+
+## Model Averaging Prediction by K-Fold Cross-Validation
+
+This method is put forward in the paper *Model Averaging Prediction by K-Fold Cross-Validation*, and you can find detailed information on [Xinyu Zhang, Chu-An Liu, Model averaging prediction by K-fold cross-validation, Journal of Econometrics, 2022, ISSN 0304-4076.](https://www.sciencedirect.com/science/article/pii/S0304407622000975) 
+
+Suppose we have $n$ independent and identically distributed (i.i.d.) observations $\{(Yi, Xi); i = 1, \dots , n\}$, where $Y_i$ is a scalar dependent variable and $X_i$ is a vector of predictors. Let the likelihood function be
+$$L\left( \boldsymbol{\theta } \right) =\prod_{i=1}^n{f\left( Yi|\boldsymbol{X}_i,\boldsymbol{\theta } \right)},$$
+where f is an unknown conditional probability density function and $\theta$ is a vector of unknown parameters.
+
+Our goal is to make predictions given the observed data $(Y_i, X_i)$ without imposing any assumptions on the structure of the model or the relationship between the dependent variable and predictors. Consider a sequence of candidate models $m = 1, \dots , M$ , where the $m$th candidate model uses the following quasi-likelihood function
+$$
+\prod_{i=1}^n f_{(m)}\left(Y_i \mid \mathbf{X}_i, \boldsymbol{\theta}_{(m)}\right).
+$$
+where the function $f(m)$ is known, but it could be misspecified, and $\boldsymbol{\theta}_{(m)}$ is a vector of the unknown parameters.
+
+Let $\widehat{\boldsymbol{\theta }}_{\left( m \right)}$ denote the maximum likelihood estimator of $\boldsymbol{\theta }_{\left( m \right)}$ in the mth candidate model. Thus, the prediction of $Y_{n+1}$ associated with the new observation $\boldsymbol{X}_{n+1}$ from this $m$th model is
+$$
+\widehat{Y}_{(m), n+1}=\mathrm{E}_{(m)}\left(Y_{n+1} \mid \mathbf{X}_{n+1}, \widehat{\boldsymbol{\theta}}_{(m)}\right)=\int y f_{(m)}\left(y \mid \mathbf{X}_{n+1}, \widehat{\boldsymbol{\theta}}_{(m)}\right) d y.
+$$
+Let $\mathbf{w}=\left( w_1,\dots ,w_M \right) ^{\mathrm{T}}$ be a weight vector with $w_m\geqslant 0$ and $\sum_{m=1}^M{w_m=1}$. That is, the weight vector $\mathbf{w}$ belongs to the set $\mathcal{W} =\left\{ \mathbf{w}\in \left[ 0,1 \right] ^M:\sum_{m=1}^M{w_m=1} \right\}$. Combining all possible predicted values of $\widehat{Y}_{\left( m \right) ,n+1}$, we construct an averaging prediction as
+$$
+\widehat{Y}_{n+1}(\mathbf{w})=\sum_{m=1}^M w_m \widehat{Y}_{(m), n+1}.
+$$
+The only problem left is how to select a group of good enough weight to improve the prediction performance or selection the optimized prediction. The procedure can be conducted using cross-validation thought as below:
+
+- **Step 1**: Divide the data set into $K$ groups with $2 ≤ K ≤ n$, so that there are $J = n/K$ observations in each group.
+- **Step 2**: For $k = 1, \dots , K$,
+  + Exclude the $k$th group from the data set and use the remaining $n−J$ observations to calculate the estimator $\widehat{\boldsymbol{\theta }}_{\left( m \right)}^{\left[ -k \right]}$ for each model. That is, $\widehat{\boldsymbol{\theta }}_{\left( m \right)}^{\left[ -k \right]}$ is the estimator of $\boldsymbol{\theta }_{\left( m \right)}$ in the $m$th model without using the observations from the $k$th group.
+  + Calculate the predictions for observations within the kth group for each model. That is, we calculate the prediction of $Y_{\left( k-1 \right) \times J+j}$ by $$\widetilde{Y}_{(m), j}^{[-k]}=\int y f_{(m)}\left(y \mid \mathbf{X}_{(k-1) \times J+j}, \widehat{\boldsymbol{\theta}}_{(m)}^{[-k]}\right) d y,$$ for $j = 1, \dots , J$ and $m = 1, \dots , M$ , where the subscript $(k − 1) × J + j$ denotes the observations in the $k$th group.
+- **Step 3**: Compute the predictions for all observations for each model as follows $$\tilde{\mathbf{Y}}_{(m)}=\left(\tilde{Y}_{(m), 1}^{[-1]}, \ldots, \tilde{Y}_{(m), J}^{[-1]}, \ldots, \tilde{Y}_{(m), 1}^{[-K]}, \ldots, \tilde{Y}_{(m), J}^{[-K]}\right)^{\top},$$ and construct the K-fold cross-validation criterion $$C V_K(\mathrm{w})=\frac{1}{n}\|\mathbf{Y}-\widetilde{\mathbf{Y}}(\mathrm{w})\|^2.$$  
+- **Step 4**: Select the model weights by minimizing the K-fold cross-validation criterion $$\widehat{\mathbf{w}}=\underset{\mathbf{w} \in \mathcal{W}}{\operatorname{argmin}} C V_K(\mathbf{w}),$$ and construct an averaging prediction for $Y_{n+1}$ as follows $$\widehat{Y}_{n+1}(\widehat{\mathbf{w}})=\sum_{m=1}^M \widehat{w}_m \widehat{Y}_{(m), n+1}.$$
+
+Notice that the proposed K-fold cross-validation criterion is a quadratic function of the weight vector. Let $\widetilde{\mathbf{e}}=\left( \widetilde{\mathbf{e}}_{\left( 1 \right)},\dots ,\widetilde{\mathbf{e}}_{\left( M \right)} \right)$, where $\widetilde{\mathbf{e}}_{\left( m \right)}=\mathbf{Y}-\widetilde{\mathbf{Y}}_{\left( m \right)}$ is the K-fold cross-validation prediction error for the $m$th model. Then, the proposed criterion can be written as a quadratic function of $\mathbf{w}$ as follows $$CV_K\left( \mathbf{w} \right) =\frac{1}{n}\mathbf{w}^T\widetilde{\mathbf{e}}^T\widetilde{\mathbf{e}}\mathbf{w},$$ Therefore, the K-fold cross-validation weights can be computed numerically via quadratic programming, and numerical algorithms of quadratic programming are available for most programming languages.
+
+The paper provides two theoretical justifications for the K-fold cross-validation. We first consider a scenario in which all candidate models are misspecified. In this scenario, we show that the proposed averaging prediction using K-fold cross-validation weights is asymptotically optimal in the sense of achieving the lowest possible prediction risk in the class of model averaging prediction estimators. Thus, this optimality property of the prediction risk function provides a complement to existing methods that focus on the in-sample squared error loss function. In the second scenario, we allow for some correctly specified models in the model set. In this case, we demonstrate that the K-fold cross-validation asymptotically assigns all weights to these correctly specified models. This novel result of asymptotically selecting the correctly specified models corresponds to the consistency property in model selection.
+
+  
+## `MAtree` algorithm
+
+Although the theoretical optimality depends on some assumptions of the model, the method itself is fully model-free and data-driven in use. Thus it is easy to apply to other method, that is where `MAtree` algorithm is started. Researchers have found that among all kinds of methods, `lightgbm` and `xgboost` performs the best on most data sets in SDP task. Indeed, they are both the boosted tree model, but their performance are slighted different under different data sets: in some circumstances, `lightgbm` beats `xgboost`, while in some circumstances, inverse. `MAtree` applies model averaging on these two algorithms, we hope this extra ensemble could bring a more stable and outstanding classifier. The algorithm is designed following the steps of CV model averaging method, and it is implemented by several functions mentioned in the following:
+
+- `Ksplit`
+- `dataloader`
+- `perform`
+- `Kfold_weight`
+- `MAtree`
+
+Below we will separately introduce the functions and there usage.
+
+### `Ksplit`
+
+`Ksplit` is a function that gives a division pattern for cross-validation. The source code is shown below:
+
+```{r, eval=FALSE}
+Ksplit <- function(K, n){
+  J <- ceiling(n/K)
+  loc <- rep(1:K, J)[1:n]
+  loc <- sample(loc)
+  return(loc)
+}
+```
+
+It accepts two input parameters `K` and `n`, `K` gives the number of folds one is wishing to get, and `n` is the number of samples the data to be divided has. The function would out put a vector of index contains $\{1,\dots,K\}$ of length `n`, which represents the division pattern.
+
+### `dataloader`
+
+`dataloader` is basically a function to divide the data into several parts, and then output the predictor and response of training and validation part, the source code is shown below:
+
+```{r, eval=FALSE}
+dataloader <- function(k, loc, data){
+  m <- ncol(data)
+  X_test <- as.matrix(data[loc==k,-m])
+  y_test <- as.matrix(data[loc==k,m])
+  X_train <- as.matrix(data[loc!=k,-m])
+  y_train <- as.matrix(data[loc!=k,m])
+  result <- list(X_test=X_test, y_test=y_test, X_train=X_train, y_train=y_train)
+  return(result)
+}
+```
+
+It accepts `k`, the number of folds one is wishing to get, `loc`, the division pattern, generated by `Ksplit`, and `data`, the data to be divided as the input parameters, and output a list contains `X_train`, `y_train`, `X_test`, `y_test`. The function is useful when conducting cross validation algorithm.
+
+### `perform`
+
+`perform` is a function that evaluates the performance of a prediction. The source code is shown below:
+
+```{r, eval=FALSE}
+perform <- function(y_true, y_pred, y_proba){
+  TP <- FP <- FN <- TN <- 0
+  n <- length(y_true)
+  y <- y_true
+  p <- y_pred
+  pr <- y_proba
+  for(i in 1:n){
+    if(p[i]==y[i] & y[i]==1) TP=TP+1
+    if(p[i]==y[i] & y[i]==0) TN=TN+1
+    if(p[i]!=y[i] & y[i]==0) FP=FP+1
+    if(p[i]!=y[i] & y[i]==1) FN=FN+1
+  }
+  ACC = (TP+TN)/(TP+FN+FP+TN)
+  Precision = TP/(TP+FP)
+  Recall = TP/(TP+FN)
+  F1 = (2*Precision*Recall)/(Precision+Recall)
+  AUC = auc(response = as.vector(y), predictor = as.vector(pr))
+  result <- list(Accuracy=ACC, Precision=Precision, Recall=Recall, F1=F1, AUC=AUC)
+  return(result)
+}
+```
+
+It accepts `y_true`, the true label of the test data, `y_pred`, our prediction of the test data, and `y_proba`, the prediction probability of the test data as the input parameters and outputs a list contains prediction accuracy, precision, recall, F1 score, and AUC.
+
+### `Kfold_weight`
+
+`Kfold_weight` is a function that could calculate the weight of model averaging process. The source code is shown below:
+
+```{r, eval=FALSE}
+Kfold_weight <- function(data, K, c, method="squareloss"){
+  n <- nrow(data)
+  index <- Ksplit(K,n)
+  prediction <- probability <- array(dim = c(0,2))
+  true <-  array(dim = c(0,1))
+  for(i in 1:K){
+    datafull <- dataloader(i, index, data)
+    X_test <- datafull$X_test
+    y_test <- datafull$y_test
+    X_train <- datafull$X_train
+    y_train <- datafull$y_train
+    # gbm
+    gbm_train = lgb.Dataset(X_train, label=y_train)
+    # xgb
+    xgb_train <- xgb.DMatrix(data=X_train, label=y_train)
+    # prediction
+    xgb_model <- xgboost(data = xgb_train, verbose = -1, params = list(objective="binary:logistic"), nrounds=10)
+    gbm_model <- lightgbm(data = gbm_train, verbose = -1, params = list(objective="binary"))
+    xgb_pr <- predict(xgb_model, X_test)
+    gbm_pr <- predict(gbm_model, X_test)
+    xgb_p <- c(0,1)[(xgb_pr>c)+1]
+    gbm_p <- c(0,1)[(gbm_pr>c)+1]
+    prediction <- rbind(prediction, cbind(gbm_p, xgb_p))
+    probability <- rbind(probability, cbind(gbm_pr, xgb_pr))
+    true <- rbind(true, y_test)
+  }
+  if(method=="squareloss"){
+    e <- prediction-cbind(true,true)
+    D <- 2*t(e)%*%e
+    print(D)
+    d <- c(0,0)
+    A <- rbind(diag(c(1,1)), diag(c(-1,-1)))
+    A <- rbind(A, c(1,1))
+    b <- c(0,0,-1,-1,1)
+    w <- solve.QP(Dmat=D, dvec=d, Amat=t(A), bvec=b)$solution
+  }
+  return(w)
+}
+```
+
+It accepts `data`, usually the training data, `K`, conduct K-fold cross-validation model averaging, `c`, the threshold that we predict a sample to be positive, (`xgboost` and `lightgbm` output the probability a sample to be positive, and we need a threshold to precisely decide the result) and `method`, the optimizing measure that we use when calculating the weight, for now there is only one option "squareloss", we are still trying to use "AUC" to be a new optimizing measure, which might give better performance in AUC, though the computation would not be as easy as the quadratic optimization in simple square loss case.
+
+### `MAtree`
+
+`MAtree` is the main function of `MAtree` algorithm, it conducts `lightgbm`, `xgboost` and `MAtree` prediction to a data set and compares the performance of the three methods. The source code is shown below:
+
+```{r, eval=FALSE}
+MAtree <- function(data, k=5, m=3, c=0.2, method="squareloss"){
+  n <- nrow(data)
+  p <- ncol(data)
+  loc <- Ksplit(k, n)
+  prediction <- probability <- array(dim = c(0,3))
+  true <-  array(dim = c(0,1))
+  for(i in 1:k){
+    datafull <- dataloader(i, loc, data)
+    train <- cbind(datafull$X_train, datafull$y_train)
+    test <- cbind(datafull$X_test, datafull$y_test)
+    w <- Kfold_weight(train, K=m, c=c, method)
+    cat("weight",  w)
+    # pre and combine
+    X_test <- datafull$X_test
+    y_test <- datafull$y_test
+    X_train <- datafull$X_train
+    y_train <- datafull$y_train
+    # gbm
+    gbm_train = lgb.Dataset(X_train, label = y_train)
+    # xgb
+    xgb_train <- xgb.DMatrix(data = X_train, label = y_train)
+    # prediction
+    xgb_model <- xgboost(data = xgb_train, verbose = 0, params = list(objective="binary:logistic"), nrounds = 30)
+    gbm_model <- lightgbm(data = gbm_train, verbose = -1, params = list(objective="binary"))
+    xgb_pr <- predict(xgb_model, X_test)
+    gbm_pr <- predict(gbm_model, X_test)
+    MA_pr <- w[1]*gbm_pr+w[2]*xgb_pr
+    xgb_p <- c(0,1)[(xgb_pr>c)+1]
+    gbm_p <- c(0,1)[(gbm_pr>c)+1]
+    MA_p <- c(0,1)[(MA_pr>c)+1]
+    prediction <- rbind(prediction, cbind(gbm_p, xgb_p, MA_p))
+    probability <- rbind(probability, cbind(gbm_pr, xgb_pr, MA_pr))
+    true <- rbind(true, y_test)
+  }
+  #gbm
+  gbm_perform <- perform(true, prediction[,1],probability[,1])
+  xgb_perform <- perform(true, prediction[,2],probability[,2])
+  MA_perform <- perform(true, prediction[,3],probability[,3])
+  return(list(prediction=prediction, gbm=gbm_perform, xgb=xgb_perform, MA=MA_perform))
+}
+```
+ 
+It accepts `data`, the whole data set, `k`, the number of folds to do cross-validation, `m`, the number of folds to do CV model averaging, `c`, the threshold for determining the positive sample, and `method`, the optimizing method for weight selection.
+
+When evaluating the performance of each prediction method, we again use cross-validation method in order to take advantages of all samples and prevent from the random fluctuation of the performance when different division of training and testing data is utilized.
+Therefore there are two "number-of-folds" parameters (`k` and `m`) needed configuration when using `MAtree`.
+
+## Experiment Result
+
+Since we need to conduct the experiment on many different data sets, each for like 50 times, it would take too long to build this vignette, so here we only show that this algorithm can run normally, and then present some experiment results that we have got before.
+
+```{r, results='hide'}
+library(StatComp22087)
+data(PC1)
+result <- MAtree(PC1)
+```
+
+```{r}
+print(result$gbm)
+print(result$xgb)
+print(result$MA)
+```
+
+Below we show the experiment result on data sets "NASA" and "AEEEM", both are classical data sets in SDP, in "NASA" data set, there are 14 sub-program data sets being used for prediction, and in "AEEEM", there are 5. For each data set, we conduct `MAtree` for 50 times and compare their performance.
+
+```{r}
+data("AEEEM_exp")
+data("NASA_exp")
+pander::pander(AEEEM)
+pander::pander(NASA)
+```
+
+Model averaging method gives the best or the second best performance most of the time, and gives the best performance on the averaging performance on the two data sets. In addition, our method often gives significant advantages in AUC performance, but it still suffers the class imbalance problem, which needs improvements.
+

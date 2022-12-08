@@ -1,0 +1,18 @@
+Package: StatComp22087
+Type: Package
+Title: MAtree algorithm implementation and homework for 'Statistical Computing' course
+Version: 1.0
+Date: 2022-12-7
+Author: Yixi Dong
+Maintainer: Yixi Dong <kasha@mail.ustc.edu.cn>
+Description: MAtree algorithm and several R and Rcpp functions are included in this package for illustration. 
+License: GPL (>= 2)
+Imports: xgboost, lightgbm, pROC, pander, quadprog, stats, Rcpp, boot, bootstrap, DAAG, microbenchmark
+Suggests: knitr, rmarkdown
+LinkingTo: Rcpp
+RoxygenNote: 7.2.2
+Encoding: UTF-8
+VignetteBuilder: knitr
+URL: https://github.com/KashaDong/StatComp22087
+BugReports: https://github.com/KashaDong/StatComp22087/issues
+

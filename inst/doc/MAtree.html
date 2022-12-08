@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Yixi Dong" />
+
+<meta name="date" content="2022-12-08" />
+
+<title>MAtree</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">MAtree</h1>
+<h4 class="author">Yixi Dong</h4>
+<h4 class="date">2022-12-08</h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Due to high cost of identifying software flaws, researchers started
+concentrating on software defect prediction(SDP) using various
+statistical and machine learning or deep learning methods. After some
+naive application of the aforementioned techniques, the popular research
+focus has shifted to assembling or combining the prediction results and
+dealing with the class imbalance problem, both direction aiming to
+improve the performance of the classifier. People are also now beginning
+to use some transfer learning techniques in order to enable SDP to adapt
+to more application scenarios.</p>
+<p><code>MAtree</code> is basically an ensemble method which combines
+two popular classifiers, <code>xgboost</code> and <code>lightgbm</code>,
+by cross-validation model averaging method. Below we will briefly
+introduce the averaging method, and then explain our <code>MAtree</code>
+algorithm, and finally present some experiment results.</p>
+</div>
+<div id="model-averaging-prediction-by-k-fold-cross-validation" class="section level2">
+<h2>Model Averaging Prediction by K-Fold Cross-Validation</h2>
+<p>This method is put forward in the paper <em>Model Averaging
+Prediction by K-Fold Cross-Validation</em>, and you can find detailed
+information on <a href="https://www.sciencedirect.com/science/article/pii/S0304407622000975">Xinyu
+Zhang, Chu-An Liu, Model averaging prediction by K-fold
+cross-validation, Journal of Econometrics, 2022, ISSN 0304-4076.</a></p>
+<p>Suppose we have <span class="math inline">\(n\)</span> independent
+and identically distributed (i.i.d.) observations <span class="math inline">\(\{(Yi, Xi); i = 1, \dots , n\}\)</span>, where
+<span class="math inline">\(Y_i\)</span> is a scalar dependent variable
+and <span class="math inline">\(X_i\)</span> is a vector of predictors.
+Let the likelihood function be <span class="math display">\[L\left(
+\boldsymbol{\theta } \right) =\prod_{i=1}^n{f\left(
+Yi|\boldsymbol{X}_i,\boldsymbol{\theta } \right)},\]</span> where f is
+an unknown conditional probability density function and <span class="math inline">\(\theta\)</span> is a vector of unknown
+parameters.</p>
+<p>Our goal is to make predictions given the observed data <span class="math inline">\((Y_i, X_i)\)</span> without imposing any
+assumptions on the structure of the model or the relationship between
+the dependent variable and predictors. Consider a sequence of candidate
+models <span class="math inline">\(m = 1, \dots , M\)</span> , where the
+<span class="math inline">\(m\)</span>th candidate model uses the
+following quasi-likelihood function <span class="math display">\[
+\prod_{i=1}^n f_{(m)}\left(Y_i \mid \mathbf{X}_i,
+\boldsymbol{\theta}_{(m)}\right).
+\]</span> where the function <span class="math inline">\(f(m)\)</span>
+is known, but it could be misspecified, and <span class="math inline">\(\boldsymbol{\theta}_{(m)}\)</span> is a vector of
+the unknown parameters.</p>
+<p>Let <span class="math inline">\(\widehat{\boldsymbol{\theta
+}}_{\left( m \right)}\)</span> denote the maximum likelihood estimator
+of <span class="math inline">\(\boldsymbol{\theta }_{\left( m
+\right)}\)</span> in the mth candidate model. Thus, the prediction of
+<span class="math inline">\(Y_{n+1}\)</span> associated with the new
+observation <span class="math inline">\(\boldsymbol{X}_{n+1}\)</span>
+from this <span class="math inline">\(m\)</span>th model is <span class="math display">\[
+\widehat{Y}_{(m), n+1}=\mathrm{E}_{(m)}\left(Y_{n+1} \mid
+\mathbf{X}_{n+1}, \widehat{\boldsymbol{\theta}}_{(m)}\right)=\int y
+f_{(m)}\left(y \mid \mathbf{X}_{n+1},
+\widehat{\boldsymbol{\theta}}_{(m)}\right) d y.
+\]</span> Let <span class="math inline">\(\mathbf{w}=\left( w_1,\dots
+,w_M \right) ^{\mathrm{T}}\)</span> be a weight vector with <span class="math inline">\(w_m\geqslant 0\)</span> and <span class="math inline">\(\sum_{m=1}^M{w_m=1}\)</span>. That is, the weight
+vector <span class="math inline">\(\mathbf{w}\)</span> belongs to the
+set <span class="math inline">\(\mathcal{W} =\left\{ \mathbf{w}\in
+\left[ 0,1 \right] ^M:\sum_{m=1}^M{w_m=1} \right\}\)</span>. Combining
+all possible predicted values of <span class="math inline">\(\widehat{Y}_{\left( m \right) ,n+1}\)</span>, we
+construct an averaging prediction as <span class="math display">\[
+\widehat{Y}_{n+1}(\mathbf{w})=\sum_{m=1}^M w_m \widehat{Y}_{(m), n+1}.
+\]</span> The only problem left is how to select a group of good enough
+weight to improve the prediction performance or selection the optimized
+prediction. The procedure can be conducted using cross-validation
+thought as below:</p>
+<ul>
+<li><strong>Step 1</strong>: Divide the data set into <span class="math inline">\(K\)</span> groups with <span class="math inline">\(2 ≤ K ≤ n\)</span>, so that there are <span class="math inline">\(J = n/K\)</span> observations in each group.</li>
+<li><strong>Step 2</strong>: For <span class="math inline">\(k = 1,
+\dots , K\)</span>,
+<ul>
+<li>Exclude the <span class="math inline">\(k\)</span>th group from the
+data set and use the remaining <span class="math inline">\(n−J\)</span>
+observations to calculate the estimator <span class="math inline">\(\widehat{\boldsymbol{\theta }}_{\left( m
+\right)}^{\left[ -k \right]}\)</span> for each model. That is, <span class="math inline">\(\widehat{\boldsymbol{\theta }}_{\left( m
+\right)}^{\left[ -k \right]}\)</span> is the estimator of <span class="math inline">\(\boldsymbol{\theta }_{\left( m \right)}\)</span>
+in the <span class="math inline">\(m\)</span>th model without using the
+observations from the <span class="math inline">\(k\)</span>th
+group.</li>
+<li>Calculate the predictions for observations within the kth group for
+each model. That is, we calculate the prediction of <span class="math inline">\(Y_{\left( k-1 \right) \times J+j}\)</span> by
+<span class="math display">\[\widetilde{Y}_{(m), j}^{[-k]}=\int y
+f_{(m)}\left(y \mid \mathbf{X}_{(k-1) \times J+j},
+\widehat{\boldsymbol{\theta}}_{(m)}^{[-k]}\right) d y,\]</span> for
+<span class="math inline">\(j = 1, \dots , J\)</span> and <span class="math inline">\(m = 1, \dots , M\)</span> , where the subscript
+<span class="math inline">\((k − 1) × J + j\)</span> denotes the
+observations in the <span class="math inline">\(k\)</span>th group.</li>
+</ul></li>
+<li><strong>Step 3</strong>: Compute the predictions for all
+observations for each model as follows <span class="math display">\[\tilde{\mathbf{Y}}_{(m)}=\left(\tilde{Y}_{(m),
+1}^{[-1]}, \ldots, \tilde{Y}_{(m), J}^{[-1]}, \ldots, \tilde{Y}_{(m),
+1}^{[-K]}, \ldots, \tilde{Y}_{(m), J}^{[-K]}\right)^{\top},\]</span> and
+construct the K-fold cross-validation criterion <span class="math display">\[C
+V_K(\mathrm{w})=\frac{1}{n}\|\mathbf{Y}-\widetilde{\mathbf{Y}}(\mathrm{w})\|^2.\]</span><br />
+</li>
+<li><strong>Step 4</strong>: Select the model weights by minimizing the
+K-fold cross-validation criterion <span class="math display">\[\widehat{\mathbf{w}}=\underset{\mathbf{w} \in
+\mathcal{W}}{\operatorname{argmin}} C V_K(\mathbf{w}),\]</span> and
+construct an averaging prediction for <span class="math inline">\(Y_{n+1}\)</span> as follows <span class="math display">\[\widehat{Y}_{n+1}(\widehat{\mathbf{w}})=\sum_{m=1}^M
+\widehat{w}_m \widehat{Y}_{(m), n+1}.\]</span></li>
+</ul>
+<p>Notice that the proposed K-fold cross-validation criterion is a
+quadratic function of the weight vector. Let <span class="math inline">\(\widetilde{\mathbf{e}}=\left(
+\widetilde{\mathbf{e}}_{\left( 1 \right)},\dots
+,\widetilde{\mathbf{e}}_{\left( M \right)} \right)\)</span>, where <span class="math inline">\(\widetilde{\mathbf{e}}_{\left( m
+\right)}=\mathbf{Y}-\widetilde{\mathbf{Y}}_{\left( m \right)}\)</span>
+is the K-fold cross-validation prediction error for the <span class="math inline">\(m\)</span>th model. Then, the proposed criterion
+can be written as a quadratic function of <span class="math inline">\(\mathbf{w}\)</span> as follows <span class="math display">\[CV_K\left( \mathbf{w} \right)
+=\frac{1}{n}\mathbf{w}^T\widetilde{\mathbf{e}}^T\widetilde{\mathbf{e}}\mathbf{w},\]</span>
+Therefore, the K-fold cross-validation weights can be computed
+numerically via quadratic programming, and numerical algorithms of
+quadratic programming are available for most programming languages.</p>
+<p>The paper provides two theoretical justifications for the K-fold
+cross-validation. We first consider a scenario in which all candidate
+models are misspecified. In this scenario, we show that the proposed
+averaging prediction using K-fold cross-validation weights is
+asymptotically optimal in the sense of achieving the lowest possible
+prediction risk in the class of model averaging prediction estimators.
+Thus, this optimality property of the prediction risk function provides
+a complement to existing methods that focus on the in-sample squared
+error loss function. In the second scenario, we allow for some correctly
+specified models in the model set. In this case, we demonstrate that the
+K-fold cross-validation asymptotically assigns all weights to these
+correctly specified models. This novel result of asymptotically
+selecting the correctly specified models corresponds to the consistency
+property in model selection.</p>
+</div>
+<div id="matree-algorithm" class="section level2">
+<h2><code>MAtree</code> algorithm</h2>
+<p>Although the theoretical optimality depends on some assumptions of
+the model, the method itself is fully model-free and data-driven in use.
+Thus it is easy to apply to other method, that is where
+<code>MAtree</code> algorithm is started. Researchers have found that
+among all kinds of methods, <code>lightgbm</code> and
+<code>xgboost</code> performs the best on most data sets in SDP task.
+Indeed, they are both the boosted tree model, but their performance are
+slighted different under different data sets: in some circumstances,
+<code>lightgbm</code> beats <code>xgboost</code>, while in some
+circumstances, inverse. <code>MAtree</code> applies model averaging on
+these two algorithms, we hope this extra ensemble could bring a more
+stable and outstanding classifier. The algorithm is designed following
+the steps of CV model averaging method, and it is implemented by several
+functions mentioned in the following:</p>
+<ul>
+<li><code>Ksplit</code></li>
+<li><code>dataloader</code></li>
+<li><code>perform</code></li>
+<li><code>Kfold_weight</code></li>
+<li><code>MAtree</code></li>
+</ul>
+<p>Below we will separately introduce the functions and there usage.</p>
+<div id="ksplit" class="section level3">
+<h3><code>Ksplit</code></h3>
+<p><code>Ksplit</code> is a function that gives a division pattern for
+cross-validation. The source code is shown below:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>Ksplit <span class="ot">&lt;-</span> <span class="cf">function</span>(K, n){</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  J <span class="ot">&lt;-</span> <span class="fu">ceiling</span>(n<span class="sc">/</span>K)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  loc <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span>K, J)[<span class="dv">1</span><span class="sc">:</span>n]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  loc <span class="ot">&lt;-</span> <span class="fu">sample</span>(loc)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(loc)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>It accepts two input parameters <code>K</code> and <code>n</code>,
+<code>K</code> gives the number of folds one is wishing to get, and
+<code>n</code> is the number of samples the data to be divided has. The
+function would out put a vector of index contains <span class="math inline">\(\{1,\dots,K\}\)</span> of length <code>n</code>,
+which represents the division pattern.</p>
+</div>
+<div id="dataloader" class="section level3">
+<h3><code>dataloader</code></h3>
+<p><code>dataloader</code> is basically a function to divide the data
+into several parts, and then output the predictor and response of
+training and validation part, the source code is shown below:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dataloader <span class="ot">&lt;-</span> <span class="cf">function</span>(k, loc, data){</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  m <span class="ot">&lt;-</span> <span class="fu">ncol</span>(data)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  X_test <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data[loc<span class="sc">==</span>k,<span class="sc">-</span>m])</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  y_test <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data[loc<span class="sc">==</span>k,m])</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  X_train <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data[loc<span class="sc">!=</span>k,<span class="sc">-</span>m])</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  y_train <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(data[loc<span class="sc">!=</span>k,m])</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">X_test=</span>X_test, <span class="at">y_test=</span>y_test, <span class="at">X_train=</span>X_train, <span class="at">y_train=</span>y_train)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>It accepts <code>k</code>, the number of folds one is wishing to get,
+<code>loc</code>, the division pattern, generated by
+<code>Ksplit</code>, and <code>data</code>, the data to be divided as
+the input parameters, and output a list contains <code>X_train</code>,
+<code>y_train</code>, <code>X_test</code>, <code>y_test</code>. The
+function is useful when conducting cross validation algorithm.</p>
+</div>
+<div id="perform" class="section level3">
+<h3><code>perform</code></h3>
+<p><code>perform</code> is a function that evaluates the performance of
+a prediction. The source code is shown below:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>perform <span class="ot">&lt;-</span> <span class="cf">function</span>(y_true, y_pred, y_proba){</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  TP <span class="ot">&lt;-</span> FP <span class="ot">&lt;-</span> FN <span class="ot">&lt;-</span> TN <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">length</span>(y_true)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  y <span class="ot">&lt;-</span> y_true</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> y_pred</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  pr <span class="ot">&lt;-</span> y_proba</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>n){</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(p[i]<span class="sc">==</span>y[i] <span class="sc">&amp;</span> y[i]<span class="sc">==</span><span class="dv">1</span>) TP<span class="ot">=</span>TP<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(p[i]<span class="sc">==</span>y[i] <span class="sc">&amp;</span> y[i]<span class="sc">==</span><span class="dv">0</span>) TN<span class="ot">=</span>TN<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(p[i]<span class="sc">!=</span>y[i] <span class="sc">&amp;</span> y[i]<span class="sc">==</span><span class="dv">0</span>) FP<span class="ot">=</span>FP<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span>(p[i]<span class="sc">!=</span>y[i] <span class="sc">&amp;</span> y[i]<span class="sc">==</span><span class="dv">1</span>) FN<span class="ot">=</span>FN<span class="sc">+</span><span class="dv">1</span></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  ACC <span class="ot">=</span> (TP<span class="sc">+</span>TN)<span class="sc">/</span>(TP<span class="sc">+</span>FN<span class="sc">+</span>FP<span class="sc">+</span>TN)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  Precision <span class="ot">=</span> TP<span class="sc">/</span>(TP<span class="sc">+</span>FP)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  Recall <span class="ot">=</span> TP<span class="sc">/</span>(TP<span class="sc">+</span>FN)</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  F1 <span class="ot">=</span> (<span class="dv">2</span><span class="sc">*</span>Precision<span class="sc">*</span>Recall)<span class="sc">/</span>(Precision<span class="sc">+</span>Recall)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  AUC <span class="ot">=</span> <span class="fu">auc</span>(<span class="at">response =</span> <span class="fu">as.vector</span>(y), <span class="at">predictor =</span> <span class="fu">as.vector</span>(pr))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  result <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">Accuracy=</span>ACC, <span class="at">Precision=</span>Precision, <span class="at">Recall=</span>Recall, <span class="at">F1=</span>F1, <span class="at">AUC=</span>AUC)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(result)</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>It accepts <code>y_true</code>, the true label of the test data,
+<code>y_pred</code>, our prediction of the test data, and
+<code>y_proba</code>, the prediction probability of the test data as the
+input parameters and outputs a list contains prediction accuracy,
+precision, recall, F1 score, and AUC.</p>
+</div>
+<div id="kfold_weight" class="section level3">
+<h3><code>Kfold_weight</code></h3>
+<p><code>Kfold_weight</code> is a function that could calculate the
+weight of model averaging process. The source code is shown below:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>Kfold_weight <span class="ot">&lt;-</span> <span class="cf">function</span>(data, K, c, <span class="at">method=</span><span class="st">&quot;squareloss&quot;</span>){</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(data)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  index <span class="ot">&lt;-</span> <span class="fu">Ksplit</span>(K,n)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  prediction <span class="ot">&lt;-</span> probability <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">2</span>))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  true <span class="ot">&lt;-</span>  <span class="fu">array</span>(<span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>K){</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    datafull <span class="ot">&lt;-</span> <span class="fu">dataloader</span>(i, index, data)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    X_test <span class="ot">&lt;-</span> datafull<span class="sc">$</span>X_test</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    y_test <span class="ot">&lt;-</span> datafull<span class="sc">$</span>y_test</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    X_train <span class="ot">&lt;-</span> datafull<span class="sc">$</span>X_train</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    y_train <span class="ot">&lt;-</span> datafull<span class="sc">$</span>y_train</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># gbm</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    gbm_train <span class="ot">=</span> <span class="fu">lgb.Dataset</span>(X_train, <span class="at">label=</span>y_train)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="co"># xgb</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    xgb_train <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data=</span>X_train, <span class="at">label=</span>y_train)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># prediction</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    xgb_model <span class="ot">&lt;-</span> <span class="fu">xgboost</span>(<span class="at">data =</span> xgb_train, <span class="at">verbose =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">params =</span> <span class="fu">list</span>(<span class="at">objective=</span><span class="st">&quot;binary:logistic&quot;</span>), <span class="at">nrounds=</span><span class="dv">10</span>)</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    gbm_model <span class="ot">&lt;-</span> <span class="fu">lightgbm</span>(<span class="at">data =</span> gbm_train, <span class="at">verbose =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">params =</span> <span class="fu">list</span>(<span class="at">objective=</span><span class="st">&quot;binary&quot;</span>))</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>    xgb_pr <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgb_model, X_test)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    gbm_pr <span class="ot">&lt;-</span> <span class="fu">predict</span>(gbm_model, X_test)</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>    xgb_p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)[(xgb_pr<span class="sc">&gt;</span>c)<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    gbm_p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)[(gbm_pr<span class="sc">&gt;</span>c)<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">&lt;-</span> <span class="fu">rbind</span>(prediction, <span class="fu">cbind</span>(gbm_p, xgb_p))</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    probability <span class="ot">&lt;-</span> <span class="fu">rbind</span>(probability, <span class="fu">cbind</span>(gbm_pr, xgb_pr))</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    true <span class="ot">&lt;-</span> <span class="fu">rbind</span>(true, y_test)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span>(method<span class="sc">==</span><span class="st">&quot;squareloss&quot;</span>){</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    e <span class="ot">&lt;-</span> prediction<span class="sc">-</span><span class="fu">cbind</span>(true,true)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    D <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span><span class="fu">t</span>(e)<span class="sc">%*%</span>e</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">print</span>(D)</span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    d <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    A <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">diag</span>(<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>)), <span class="fu">diag</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>)))</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    A <span class="ot">&lt;-</span> <span class="fu">rbind</span>(A, <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>    b <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>)</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a>    w <span class="ot">&lt;-</span> <span class="fu">solve.QP</span>(<span class="at">Dmat=</span>D, <span class="at">dvec=</span>d, <span class="at">Amat=</span><span class="fu">t</span>(A), <span class="at">bvec=</span>b)<span class="sc">$</span>solution</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(w)</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>It accepts <code>data</code>, usually the training data,
+<code>K</code>, conduct K-fold cross-validation model averaging,
+<code>c</code>, the threshold that we predict a sample to be positive,
+(<code>xgboost</code> and <code>lightgbm</code> output the probability a
+sample to be positive, and we need a threshold to precisely decide the
+result) and <code>method</code>, the optimizing measure that we use when
+calculating the weight, for now there is only one option “squareloss”,
+we are still trying to use “AUC” to be a new optimizing measure, which
+might give better performance in AUC, though the computation would not
+be as easy as the quadratic optimization in simple square loss case.</p>
+</div>
+<div id="matree" class="section level3">
+<h3><code>MAtree</code></h3>
+<p><code>MAtree</code> is the main function of <code>MAtree</code>
+algorithm, it conducts <code>lightgbm</code>, <code>xgboost</code> and
+<code>MAtree</code> prediction to a data set and compares the
+performance of the three methods. The source code is shown below:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>MAtree <span class="ot">&lt;-</span> <span class="cf">function</span>(data, <span class="at">k=</span><span class="dv">5</span>, <span class="at">m=</span><span class="dv">3</span>, <span class="at">c=</span><span class="fl">0.2</span>, <span class="at">method=</span><span class="st">&quot;squareloss&quot;</span>){</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(data)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  p <span class="ot">&lt;-</span> <span class="fu">ncol</span>(data)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  loc <span class="ot">&lt;-</span> <span class="fu">Ksplit</span>(k, n)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  prediction <span class="ot">&lt;-</span> probability <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">3</span>))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  true <span class="ot">&lt;-</span>  <span class="fu">array</span>(<span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>k){</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    datafull <span class="ot">&lt;-</span> <span class="fu">dataloader</span>(i, loc, data)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    train <span class="ot">&lt;-</span> <span class="fu">cbind</span>(datafull<span class="sc">$</span>X_train, datafull<span class="sc">$</span>y_train)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    test <span class="ot">&lt;-</span> <span class="fu">cbind</span>(datafull<span class="sc">$</span>X_test, datafull<span class="sc">$</span>y_test)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    w <span class="ot">&lt;-</span> <span class="fu">Kfold_weight</span>(train, <span class="at">K=</span>m, <span class="at">c=</span>c, method)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cat</span>(<span class="st">&quot;weight&quot;</span>,  w)</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># pre and combine</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    X_test <span class="ot">&lt;-</span> datafull<span class="sc">$</span>X_test</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    y_test <span class="ot">&lt;-</span> datafull<span class="sc">$</span>y_test</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    X_train <span class="ot">&lt;-</span> datafull<span class="sc">$</span>X_train</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    y_train <span class="ot">&lt;-</span> datafull<span class="sc">$</span>y_train</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># gbm</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    gbm_train <span class="ot">=</span> <span class="fu">lgb.Dataset</span>(X_train, <span class="at">label =</span> y_train)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># xgb</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    xgb_train <span class="ot">&lt;-</span> <span class="fu">xgb.DMatrix</span>(<span class="at">data =</span> X_train, <span class="at">label =</span> y_train)</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># prediction</span></span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    xgb_model <span class="ot">&lt;-</span> <span class="fu">xgboost</span>(<span class="at">data =</span> xgb_train, <span class="at">verbose =</span> <span class="dv">0</span>, <span class="at">params =</span> <span class="fu">list</span>(<span class="at">objective=</span><span class="st">&quot;binary:logistic&quot;</span>), <span class="at">nrounds =</span> <span class="dv">30</span>)</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    gbm_model <span class="ot">&lt;-</span> <span class="fu">lightgbm</span>(<span class="at">data =</span> gbm_train, <span class="at">verbose =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">params =</span> <span class="fu">list</span>(<span class="at">objective=</span><span class="st">&quot;binary&quot;</span>))</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    xgb_pr <span class="ot">&lt;-</span> <span class="fu">predict</span>(xgb_model, X_test)</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    gbm_pr <span class="ot">&lt;-</span> <span class="fu">predict</span>(gbm_model, X_test)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    MA_pr <span class="ot">&lt;-</span> w[<span class="dv">1</span>]<span class="sc">*</span>gbm_pr<span class="sc">+</span>w[<span class="dv">2</span>]<span class="sc">*</span>xgb_pr</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    xgb_p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)[(xgb_pr<span class="sc">&gt;</span>c)<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    gbm_p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)[(gbm_pr<span class="sc">&gt;</span>c)<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    MA_p <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)[(MA_pr<span class="sc">&gt;</span>c)<span class="sc">+</span><span class="dv">1</span>]</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    prediction <span class="ot">&lt;-</span> <span class="fu">rbind</span>(prediction, <span class="fu">cbind</span>(gbm_p, xgb_p, MA_p))</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    probability <span class="ot">&lt;-</span> <span class="fu">rbind</span>(probability, <span class="fu">cbind</span>(gbm_pr, xgb_pr, MA_pr))</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    true <span class="ot">&lt;-</span> <span class="fu">rbind</span>(true, y_test)</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>  <span class="co">#gbm</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  gbm_perform <span class="ot">&lt;-</span> <span class="fu">perform</span>(true, prediction[,<span class="dv">1</span>],probability[,<span class="dv">1</span>])</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  xgb_perform <span class="ot">&lt;-</span> <span class="fu">perform</span>(true, prediction[,<span class="dv">2</span>],probability[,<span class="dv">2</span>])</span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  MA_perform <span class="ot">&lt;-</span> <span class="fu">perform</span>(true, prediction[,<span class="dv">3</span>],probability[,<span class="dv">3</span>])</span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">prediction=</span>prediction, <span class="at">gbm=</span>gbm_perform, <span class="at">xgb=</span>xgb_perform, <span class="at">MA=</span>MA_perform))</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<p>It accepts <code>data</code>, the whole data set, <code>k</code>, the
+number of folds to do cross-validation, <code>m</code>, the number of
+folds to do CV model averaging, <code>c</code>, the threshold for
+determining the positive sample, and <code>method</code>, the optimizing
+method for weight selection.</p>
+<p>When evaluating the performance of each prediction method, we again
+use cross-validation method in order to take advantages of all samples
+and prevent from the random fluctuation of the performance when
+different division of training and testing data is utilized. Therefore
+there are two “number-of-folds” parameters (<code>k</code> and
+<code>m</code>) needed configuration when using <code>MAtree</code>.</p>
+</div>
+</div>
+<div id="experiment-result" class="section level2">
+<h2>Experiment Result</h2>
+<p>Since we need to conduct the experiment on many different data sets,
+each for like 50 times, it would take too long to build this vignette,
+so here we only show that this algorithm can run normally, and then
+present some experiment results that we have got before.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(StatComp22087)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(PC1)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>result <span class="ot">&lt;-</span> <span class="fu">MAtree</span>(PC1)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(result<span class="sc">$</span>gbm)</span></code></pre></div>
+<pre><code>## $Accuracy
+## [1] 0.893617
+## 
+## $Precision
+## [1] 0.3833333
+## 
+## $Recall
+## [1] 0.3770492
+## 
+## $F1
+## [1] 0.3801653
+## 
+## $AUC
+## Area under the curve: 0.8507</code></pre>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(result<span class="sc">$</span>xgb)</span></code></pre></div>
+<pre><code>## $Accuracy
+## [1] 0.8893617
+## 
+## $Precision
+## [1] 0.3866667
+## 
+## $Recall
+## [1] 0.4754098
+## 
+## $F1
+## [1] 0.4264706
+## 
+## $AUC
+## Area under the curve: 0.8567</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(result<span class="sc">$</span>MA)</span></code></pre></div>
+<pre><code>## $Accuracy
+## [1] 0.8950355
+## 
+## $Precision
+## [1] 0.3934426
+## 
+## $Recall
+## [1] 0.3934426
+## 
+## $F1
+## [1] 0.3934426
+## 
+## $AUC
+## Area under the curve: 0.8648</code></pre>
+<p>Below we show the experiment result on data sets “NASA” and “AEEEM”,
+both are classical data sets in SDP, in “NASA” data set, there are 14
+sub-program data sets being used for prediction, and in “AEEEM”, there
+are 5. For each data set, we conduct <code>MAtree</code> for 50 times
+and compare their performance.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;AEEEM_exp&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning in data(&quot;AEEEM_exp&quot;): data set &#39;AEEEM_exp&#39; not found</code></pre>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;NASA_exp&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning in data(&quot;NASA_exp&quot;): data set &#39;NASA_exp&#39; not found</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(AEEEM)</span></code></pre></div>
+<p>Quitting from lines 250-254 (MAtree.Rmd)</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>pander<span class="sc">::</span><span class="fu">pander</span>(NASA)</span></code></pre></div>
+<p>Quitting from lines 250-254 (MAtree.Rmd)</p>
+<p>Model averaging method gives the best or the second best performance
+most of the time, and gives the best performance on the averaging
+performance on the two data sets. In addition, our method often gives
+significant advantages in AUC performance, but it still suffers the
+class imbalance problem, which needs improvements.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
